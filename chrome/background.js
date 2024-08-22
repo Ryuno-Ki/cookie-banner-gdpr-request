@@ -25,6 +25,12 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
         let cmp, csv
 
         switch (hostname) {
+            case 'amazon.de':
+                await handleAmazon(cbgr, 'amazon.de');
+                break;
+            case 'www.amazon.de':
+                await handleAmazon(cbgr, 'www.amazon.de');
+                break;
             case 'www.heise.de':
                 cmp = await handleHeise();
                 csv = cmp.vendors.map(({ name, policyUrl }) => {
@@ -132,6 +138,29 @@ async function handleHeise() {
 // This might be refactored after handling more sites
 async function handleSpiegel() {
     return handleTcf('sp-spiegel-de.spiegel.de', '756676');
+}
+
+async function handleAmazon(cbgr, hostname) {
+    await setupOffscreenDocument('/amazon.html')
+    const onDone = async (cmp) => {
+        const csv = cmp.map(({ policyUrl, name }) => {
+          if (policyUrl === null) {
+              return [ name, null, null ]
+          }
+          const { hostname } = new URL(policyUrl);
+          return [ name, policyUrl, hostname ];
+        });
+        cbgr[hostname].vendors = csv;
+
+        await chrome.storage.session.set({ cbgr });
+        chrome.runtime.onMessage.removeListener(onDone);
+    };
+
+    chrome.runtime.onMessage.addListener(onDone);
+    chrome.runtime.sendMessage({
+      type: 'parse-amazon-partners',
+      target: 'offscreen'
+    });
 }
 
 async function handlePaypal(cbgr, hostname) {

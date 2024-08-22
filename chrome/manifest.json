@@ -10,6 +10,7 @@
         "default_popup": "popup.html"
     },
     "host_permissions": [
+        "https://www.amazon.de/",
         "https://www.paypal.com/"
     ],
     "permissions": [
@@ -17,5 +18,5 @@
         "storage",
         "tabs"
     ],
-    "version": "0.3"
+    "version": "0.4"
 }
